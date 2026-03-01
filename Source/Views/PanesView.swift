@@ -5,6 +5,7 @@ struct RemotePaneView: View {
     @ObservedObject var vm: AppViewModel
     @Binding var hoveredEntryID: String?
     let onRequestDelete: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -16,6 +17,7 @@ struct RemotePaneView: View {
                         .foregroundStyle(vm.isAllRemoteSelected ? Color.accentColor : Color.secondary)
                 }
                 .buttonStyle(.plain)
+                .font(.system(size: 14, weight: .semibold))
                 .help("Select/Deselect all in Android pane")
 
                 Text("Android")
@@ -34,7 +36,10 @@ struct RemotePaneView: View {
                     Image(systemName: "chevron.backward")
                 }
                 .help("Back")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || !vm.canRemoteBack)
 
                 Button {
@@ -43,7 +48,10 @@ struct RemotePaneView: View {
                     Image(systemName: "chevron.forward")
                 }
                 .help("Forward")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || !vm.canRemoteForward)
 
                 Button {
@@ -52,7 +60,10 @@ struct RemotePaneView: View {
                     Image(systemName: "trash")
                 }
                 .help("Delete selected remote item(s)")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || vm.selectedRemoteEntryIDs.isEmpty || vm.deviceSerial.isEmpty)
 
                 Button {
@@ -61,7 +72,10 @@ struct RemotePaneView: View {
                     Image(systemName: "arrow.down.to.line.compact")
                 }
                 .help("Transfer selected Android item(s) to Mac folder")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(Color.accentColor.opacity(colorScheme == .dark ? 0.32 : 0.18), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || vm.selectedRemoteEntryIDs.isEmpty || vm.deviceSerial.isEmpty)
 
                 Button {
@@ -70,16 +84,20 @@ struct RemotePaneView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .help("Refresh Android pane")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || vm.deviceSerial.isEmpty)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .background(headerBackground)
 
             Divider()
 
             ScrollView {
-                LazyVStack(spacing: 0) {
+                LazyVStack(spacing: 4) {
                     ForEach(vm.remoteEntries) { entry in
                         HStack(spacing: 10) {
                             Button {
@@ -89,17 +107,19 @@ struct RemotePaneView: View {
                                     .foregroundStyle(vm.selectedRemoteEntryIDs.contains(entry.id) ? Color.accentColor : Color.secondary)
                             }
                             .buttonStyle(.plain)
+                            .font(.system(size: 14, weight: .medium))
 
                             Image(systemName: entry.isDirectory ? "folder" : "doc")
+                                .font(.system(size: 15, weight: .medium))
 
                             Text(entry.name)
                                 .lineLimit(1)
 
                             Spacer()
                         }
-                        .padding(.horizontal, 12)
+                        .padding(.horizontal, 10)
                         .padding(.vertical, 8)
-                        .background(remoteRowBackgroundColor(for: entry.id))
+                        .background(rowFillColor(for: entry.id), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                         .contentShape(Rectangle())
                         .onHover { isHovering in
                             hoveredEntryID = isHovering ? entry.id : nil
@@ -115,20 +135,29 @@ struct RemotePaneView: View {
                         })
                     }
                 }
+                .padding(8)
             }
             .id("remote-\(vm.remoteCurrentPath)-\(vm.remoteListRevision)")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
-    private func remoteRowBackgroundColor(for id: String) -> Color {
+    private func rowFillColor(for id: String) -> Color {
         if vm.selectedRemoteEntryIDs.contains(id) {
-            return Color.accentColor.opacity(0.22)
+            return Color.accentColor.opacity(colorScheme == .dark ? 0.33 : 0.24)
         }
         if hoveredEntryID == id {
-            return Color.accentColor.opacity(0.08)
+            return Color.primary.opacity(colorScheme == .dark ? 0.14 : 0.07)
         }
-        return .clear
+        return Color(nsColor: .windowBackgroundColor).opacity(colorScheme == .dark ? 0.42 : 0.78)
+    }
+
+    private var controlChipBackground: Color {
+        Color.primary.opacity(colorScheme == .dark ? 0.16 : 0.08)
+    }
+
+    private var headerBackground: Color {
+        Color.primary.opacity(colorScheme == .dark ? 0.10 : 0.05)
     }
 }
 
@@ -136,6 +165,7 @@ struct LocalPaneView: View {
     @ObservedObject var vm: AppViewModel
     @Binding var hoveredEntryID: String?
     let onRequestDelete: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -147,6 +177,7 @@ struct LocalPaneView: View {
                         .foregroundStyle(vm.isAllLocalSelected ? Color.accentColor : Color.secondary)
                 }
                 .buttonStyle(.plain)
+                .font(.system(size: 14, weight: .semibold))
                 .help("Select/Deselect all in Mac pane")
 
                 Text("Mac")
@@ -165,7 +196,10 @@ struct LocalPaneView: View {
                     Image(systemName: "chevron.backward")
                 }
                 .help("Back")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || !vm.canLocalBack)
 
                 Button {
@@ -174,7 +208,10 @@ struct LocalPaneView: View {
                     Image(systemName: "chevron.forward")
                 }
                 .help("Forward")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || !vm.canLocalForward)
 
                 Button {
@@ -183,7 +220,10 @@ struct LocalPaneView: View {
                     Image(systemName: "trash")
                 }
                 .help("Delete selected local item(s)")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || vm.selectedLocalEntryIDs.isEmpty)
 
                 Button {
@@ -192,7 +232,10 @@ struct LocalPaneView: View {
                     Image(systemName: "arrow.up.to.line.compact")
                 }
                 .help("Transfer selected Mac item(s) to Android folder")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(Color.accentColor.opacity(colorScheme == .dark ? 0.32 : 0.18), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy || vm.selectedLocalEntryIDs.isEmpty || vm.deviceSerial.isEmpty)
 
                 Button {
@@ -206,16 +249,20 @@ struct LocalPaneView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .help("Refresh Mac pane")
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .padding(8)
+                .background(controlChipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .disabled(vm.isBusy)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .background(headerBackground)
 
             Divider()
 
             ScrollView {
-                LazyVStack(spacing: 0) {
+                LazyVStack(spacing: 4) {
                     ForEach(vm.localEntries) { entry in
                         HStack(spacing: 10) {
                             Button {
@@ -225,17 +272,19 @@ struct LocalPaneView: View {
                                     .foregroundStyle(vm.selectedLocalEntryIDs.contains(entry.id) ? Color.accentColor : Color.secondary)
                             }
                             .buttonStyle(.plain)
+                            .font(.system(size: 14, weight: .medium))
 
                             Image(systemName: entry.isDirectory ? "folder" : "doc")
+                                .font(.system(size: 15, weight: .medium))
 
                             Text(entry.name)
                                 .lineLimit(1)
 
                             Spacer()
                         }
-                        .padding(.horizontal, 12)
+                        .padding(.horizontal, 10)
                         .padding(.vertical, 8)
-                        .background(localRowBackgroundColor(for: entry.id))
+                        .background(rowFillColor(for: entry.id), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                         .contentShape(Rectangle())
                         .onHover { isHovering in
                             hoveredEntryID = isHovering ? entry.id : nil
@@ -251,19 +300,28 @@ struct LocalPaneView: View {
                         })
                     }
                 }
+                .padding(8)
             }
             .id("local-\(vm.localCurrentPath)-\(vm.localListRevision)")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
-    private func localRowBackgroundColor(for id: String) -> Color {
+    private func rowFillColor(for id: String) -> Color {
         if vm.selectedLocalEntryIDs.contains(id) {
-            return Color.accentColor.opacity(0.22)
+            return Color.accentColor.opacity(colorScheme == .dark ? 0.33 : 0.24)
         }
         if hoveredEntryID == id {
-            return Color.accentColor.opacity(0.08)
+            return Color.primary.opacity(colorScheme == .dark ? 0.14 : 0.07)
         }
-        return .clear
+        return Color(nsColor: .windowBackgroundColor).opacity(colorScheme == .dark ? 0.42 : 0.78)
+    }
+
+    private var controlChipBackground: Color {
+        Color.primary.opacity(colorScheme == .dark ? 0.16 : 0.08)
+    }
+
+    private var headerBackground: Color {
+        Color.primary.opacity(colorScheme == .dark ? 0.10 : 0.05)
     }
 }

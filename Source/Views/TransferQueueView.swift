@@ -5,6 +5,7 @@ struct TransferQueueView: View {
     @ObservedObject var vm: AppViewModel
     @Binding var footerHeight: CGFloat
     @Binding var footerDragStartHeight: CGFloat?
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,21 +41,25 @@ struct TransferQueueView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(vm.status)
-                        .font(.caption)
+                        .font(.caption.weight(.medium))
                         .lineLimit(2)
                     Spacer()
                     if vm.hasTransferQueue {
                         Button("Clear Queue") {
                             vm.clearQueue()
                         }
-                        .font(.caption)
+                        .font(.caption.weight(.semibold))
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.primary.opacity(colorScheme == .dark ? 0.5 : 0.25))
                         .disabled(vm.isBusy)
                     }
                     if vm.isBusy {
                         Button("Cancel All") {
                             vm.cancelAllTransfers()
                         }
-                        .font(.caption)
+                        .font(.caption.weight(.semibold))
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color(red: 0.78, green: 0.33, blue: 0.25))
                     }
                 }
 
@@ -66,40 +71,52 @@ struct TransferQueueView: View {
                     ScrollView {
                         LazyVStack(spacing: 6) {
                             ForEach(vm.transferTasks) { task in
-                                HStack(spacing: 8) {
-                                    Image(systemName: task.direction == .download ? "arrow.down.circle" : "arrow.up.circle")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                VStack(spacing: 6) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: task.direction == .download ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(.secondary)
 
-                                    Text(task.direction.rawValue)
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                        Text(task.direction.rawValue)
+                                            .font(.caption2.weight(.semibold))
+                                            .foregroundStyle(.secondary)
 
-                                    Text(task.name)
-                                        .font(.caption)
-                                        .lineLimit(1)
+                                        Text(task.name)
+                                            .font(.caption)
+                                            .lineLimit(1)
 
-                                    Spacer()
+                                        Spacer()
 
-                                    Text(task.state.label)
-                                        .font(.caption2)
-                                        .foregroundStyle(stateColor(task.state))
+                                        Text(task.state.label)
+                                            .font(.caption2.weight(.semibold))
+                                            .foregroundStyle(stateColor(task.state))
 
-                                    if task.state == .pending {
-                                        Button("Cancel") {
-                                            vm.cancelPendingTransfer(id: task.id)
+                                        if task.state == .pending {
+                                            Button("Cancel") {
+                                                vm.cancelPendingTransfer(id: task.id)
+                                            }
+                                            .font(.caption2.weight(.semibold))
+                                            .buttonStyle(.bordered)
                                         }
-                                        .font(.caption2)
+                                    }
+
+                                    if task.state == .inProgress {
+                                        IndeterminateProgressBar()
+                                            .frame(maxWidth: .infinity)
+                                    } else if task.state == .completed {
+                                        ProgressView(value: 100, total: 100)
+                                            .frame(maxWidth: .infinity)
                                     }
                                 }
-
-                                if task.state == .inProgress {
-                                    IndeterminateProgressBar()
-                                        .frame(maxWidth: .infinity)
-                                } else if task.state == .completed {
-                                    ProgressView(value: 100, total: 100)
-                                        .frame(maxWidth: .infinity)
-                                }
+                                .padding(8)
+                                .background(
+                                    Color(nsColor: .windowBackgroundColor).opacity(colorScheme == .dark ? 0.42 : 0.82),
+                                    in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .stroke(Color.accentColor.opacity(0.18), lineWidth: 1)
+                                )
                             }
                         }
                     }

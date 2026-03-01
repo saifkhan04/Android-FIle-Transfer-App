@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="AndroidFileTransferApp"
+APP_DISPLAY_NAME="DroidTransfer"
+APP_ICON_PATH="$ROOT_DIR/Resources/AppIcon.icns"
 BUILD_DIR="$ROOT_DIR/.build"
 DIST_DIR="$ROOT_DIR/dist"
 APP_DIR="$DIST_DIR/${APP_NAME}.app"
@@ -39,7 +41,11 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
-  <string>$APP_NAME</string>
+  <string>$APP_DISPLAY_NAME</string>
+  <key>CFBundleDisplayName</key>
+  <string>$APP_DISPLAY_NAME</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
@@ -56,6 +62,10 @@ PLIST
 
 cp "$BIN_PATH" "$APP_DIR/Contents/MacOS/$APP_NAME"
 chmod +x "$APP_DIR/Contents/MacOS/$APP_NAME"
+
+if [[ -f "$APP_ICON_PATH" ]]; then
+  cp "$APP_ICON_PATH" "$APP_DIR/Contents/Resources/AppIcon.icns"
+fi
 
 # Optional ad-hoc signing for easier local launch.
 if command -v codesign >/dev/null 2>&1; then
