@@ -12,7 +12,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AndroidFileTransferApp",
-            path: "Sources/AndroidFileTransferApp"
+            path: "Source"
         )
     ]
 )
