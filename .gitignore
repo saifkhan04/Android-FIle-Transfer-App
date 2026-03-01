@@ -1,0 +1,10 @@
+# SwiftPM / build artifacts
+.build/
+.swiftpm/
+DerivedData/
+
+# Packaged app output
+dist/
+
+# macOS
+.DS_Store
